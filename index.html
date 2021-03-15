@@ -15,6 +15,7 @@ This Source Code Form is subject to the terms of the Mozilla Public License, v. 
 If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 Copyright (c) 2020, Mozilla.
+Copyright (c) 2021, Philip Lamb.
 Author(s): Philip Lamb
 -->
 <body>
@@ -54,7 +55,7 @@ Author(s): Philip Lamb
     // We also use WebXRButton from the Immersive Web Working Group examples,
     // a utility module for query-string parsing, and the gl-matrix utility
     // for any Javascript-side matrix manipulations.
-	import Module from './arosg.js'
+	import createModule from './arosg.js'
 	import {WebXRButton} from './js/util/webxr-button.js';
 	import {QueryArgs} from './js/util/query-args.js';
 	import {mat4, quat, glMatrix} from './js/third-party/gl-matrix/src/gl-matrix.js';
@@ -203,6 +204,7 @@ Author(s): Philip Lamb
 //         return webglCanvas;
 //     }
 
+    let arOsgMod = null;
     let arOsgReady = false;
 
 	// Pre-populate settings for the WASM module.
@@ -227,14 +229,7 @@ Author(s): Philip Lamb
 	
             return canvas;
 	    })(),
-	    preinitializedWebGLContext: {},
-	    onRuntimeInitialized: function() {
-	        const version = arOsgMod.ccall('arOSGGetVersion', 'number');
-	        console.log('arOSG version 0x' + version.toString(16) + '.');
-	        arOsgReady = true;
-	        
-	        document.getElementById("prompt").innerHTML = "Choose a worker and assigned task, then click the button to enter XR.";
-	    }
+	    preinitializedWebGLContext: {}
 	};
 	
 	// Creates a WebGL context and initializes it with some common default state.
@@ -269,7 +264,14 @@ Author(s): Philip Lamb
     }
 	
 	// Instantiate the WASM module.
-	const arOsgMod = Module(arOsgModSettings);
+	createModule(arOsgModSettings).then(function(Module) {
+        arOsgMod = Module;
+        const version = Module.ccall('arOSGGetVersion', 'number');
+        console.log('arOSG version 0x' + version.toString(16) + '.');
+        arOsgReady = true;
+        
+        document.getElementById("prompt").innerHTML = "Choose a worker and assigned task, then click the button to enter XR.";
+    });
 	
     // XR globals.
     let xrButton = null;

@@ -3,7 +3,8 @@
 #
 # master build script.
 #
-# Copyright 202020, Mozilla.
+# Copyright 2020, Mozilla.
+# Copyright 2021, Philip Lamb
 # Author(s): Philip Lamb
 #
 
@@ -62,7 +63,7 @@ OPTIONS="${OPTIONS} -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
 OPTIONS="${OPTIONS} -s GL_PREINITIALIZED_CONTEXT=1"
 
 # Build as a wasm es6 module with multithreading, and ensure ccall and cwrap are kept during linking.
-OPTIONS="${OPTIONS} -s ENVIRONMENT=web,worker -s EXPORT_ES6=1 -s MODULARIZE=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','cwrap']"
+OPTIONS="${OPTIONS} -s ENVIRONMENT=web,worker -s EXPORT_ES6=1 -s MODULARIZE=1 -s EXPORT_NAME=createModule -s EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','cwrap']"
 
 if [ -z ${DEBUG+Debug} ]; then
     OPTIONS="${OPTIONS} -DDEBUG"
