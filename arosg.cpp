@@ -40,6 +40,7 @@
 #include "arosg.h"
 #include <stdio.h>
 #include <string.h>
+#include <cmath>
 #include <osg/GL>
 #include <osg/Node>
 #include <osg/ShapeDrawable>
@@ -452,10 +453,12 @@ extern "C" {
         arOsg->_vertColorProgram = new osg::Program();
         arOsg->_vertColorProgram->addShader( new osg::Shader(osg::Shader::VERTEX, ColorShaderVert));
         arOsg->_vertColorProgram->addShader( new osg::Shader(osg::Shader::FRAGMENT, ColorShaderFrag));
+        arOsg->_vertColorProgram->setName("AROSG ColorShaderProgram");
         
         arOsg->_textureProgram = new osg::Program();
         arOsg->_textureProgram->addShader( new osg::Shader(osg::Shader::VERTEX, TextureShaderVert));
         arOsg->_textureProgram->addShader( new osg::Shader(osg::Shader::FRAGMENT, TextureShaderFrag));
+        arOsg->_textureProgram->setName("AROSG TextureShaderProgram");
 #endif
 
         return (arOsg);
@@ -635,8 +638,11 @@ extern "C" {
             /* +z */ {3, 2, 1, 0}, /* -y */ {2, 3, 7, 6}, /* +y */ {0, 1, 5, 4},
             /* -x */ {3, 0, 4, 7}, /* +x */ {1, 2, 6, 5}, /* -z */ {4, 5, 6, 7} };
         osg::ref_ptr<osg::Geode> model = new osg::Geode();
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
         model->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-        //model->getOrCreateStateSet()->setTextureMode(GL_TEXTURE_2D, osg::StateAttribute::OFF);
+#else
+        model->getOrCreateStateSet()->removeDefine("LIGHTING");
+#endif
         osg::Geometry* facesGeom = new osg::Geometry();
         facesGeom->setVertexArray(new osg::Vec3Array(8, (osg::Vec3 *)cube_vertices));
         facesGeom->setColorArray(new osg::Vec4Array(8, (osg::Vec4 *)cube_vertex_colors));
@@ -729,12 +735,58 @@ extern "C" {
         int index = arOSGLoadModel2(arOsg, modelFilePath, translation, rotation, scale, texturesFlag);
         
         if (index >= 0) {
-            if (!lightingFlag) arOSGSetModelLighting(arOsg, index, 0);
+            if (lightingFlag != -1) arOSGSetModelLighting(arOsg, index, lightingFlag);
             if (transparencyFlag != -1) arOSGSetModelTransparency(arOsg, index, transparencyFlag);
-            if (selectableFlag != 1) arOSGSetModelSelectable(arOsg, index, selectableFlag);
+            if (selectableFlag != -1) arOSGSetModelSelectable(arOsg, index, selectableFlag);
         }
         
         return (index);
+    }
+    
+    int AR_OSG_EXTDEF arOSGCreateDEMModel(AROSG *arOsg, const char *demFilePath, const float scaleFactor, const float heightExaggerationFactor)
+    {
+        if (!arOsg) return (-1);
+#ifdef __EMSCRIPTEN__
+        if (emscripten_webgl_make_context_current(arOsg->webGLCtx) != EMSCRIPTEN_RESULT_SUCCESS) {
+            ARLOGw("Error in emscripten_webgl_make_context_current().\n");
+        };
+#endif
+        
+        osg::NotifySeverity nl = osg::getNotifyLevel();
+        osg::setNotifyLevel(osg::DEBUG_INFO);
+        osg::ref_ptr<osg::HeightField> hf = osgDB::readRefHeightFieldFile(std::string(demFilePath) + std::string(".gdal"));
+        if (!hf.valid())
+        {
+            ARLOGe("Unable to read DEM file '%s'.\n", demFilePath);
+            return (-1);
+        }
+        // Origin is bottom-left.
+        ARLOGi("%dx%d heightfield loaded: Xinterval:%f, Yinterval:%f, Origin:{%f, %f, %f}, Rotation:{%f, %f, %f, %f}, SkirtHeight:%f, BorderWidth:%d\n", hf->getNumColumns(), hf->getNumRows(), hf->getXInterval(), hf->getYInterval(), hf->getOrigin().x(), hf->getOrigin().y(), hf->getOrigin().z(), hf->getRotation().x(), hf->getRotation().y(), hf->getRotation().z(), hf->getRotation().w(), hf->getSkirtHeight(), hf->getBorderWidth());
+        hf->setXInterval(hf->getXInterval()/scaleFactor);
+        hf->setYInterval(hf->getYInterval()/scaleFactor);
+        float xsize = hf->getNumColumns()*hf->getXInterval();
+        float ysize = hf->getNumRows()*hf->getYInterval();
+        hf->setOrigin(osg::Vec3f(-0.5f*xsize, -0.5f*ysize, 0.0f));
+        hf->setSkirtHeight(0.05f * fmaxf(xsize, ysize));
+        osg::FloatArray* heights = hf->getFloatArray();
+        for (auto& f : *heights) f = f /scaleFactor * heightExaggerationFactor;
+        
+        osg::ref_ptr<osg::Geode> model = new osg::Geode();
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
+        model->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON);
+#else
+        model->getOrCreateStateSet()->setDefine("LIGHTING");
+#endif
+        model->addDrawable(new osg::ShapeDrawable(hf.get()));
+        osg::setNotifyLevel(nl);
+#  if !defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
+        model->getOrCreateStateSet()->setAttributeAndModes(arOsg->_vertColorProgram, osg::StateAttribute::ON);
+        optimizeNode(model);
+        //VBOSetupVisitor vbo;
+        //model->accept(vbo);
+#endif
+
+        return arOSGLoadInternal(arOsg, model, nullptr, nullptr, nullptr);
     }
     
     int AR_OSG_EXTDEF arOSGUnloadModel(AROSG *arOsg, const int index)
@@ -807,7 +859,15 @@ extern "C" {
             return (-1);
         }
         
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
         arOsg->models[index]->getOrCreateStateSet()->setMode(GL_LIGHTING, (lit ? osg::StateAttribute::ON : osg::StateAttribute::OFF));
+#else
+        if (lit) {
+            arOsg->models[index]->getOrCreateStateSet()->setDefine("LIGHTING");
+        } else {
+            arOsg->models[index]->getOrCreateStateSet()->removeDefine("LIGHTING");
+        }
+#endif
         return (0);
     }
     
@@ -825,7 +885,11 @@ extern "C" {
             return (-1);
         }
         
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
         *lit = (arOsg->models[index]->getOrCreateStateSet()->getMode(GL_LIGHTING) != osg::StateAttribute::OFF);
+#else
+        *lit = (arOsg->models[index]->getOrCreateStateSet()->getDefinePair("LIGHTING") != 0);
+#endif
         return (0);
     }
     

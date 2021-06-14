@@ -63,7 +63,7 @@ Author(s): Philip Lamb
 	// If requested, use the polyfill to provide support for mobile devices
 	// and devices which only support WebVR.
 	import WebXRPolyfill from './js/third-party/webxr-polyfill/build/webxr-polyfill.module.js';
-	if (QueryArgs.getBool('usePolyfill', true)) {
+	if (QueryArgs.getBool('usePolyfill', false)) {
 	    let polyfill = new WebXRPolyfill();
 	    document.getElementById("native").innerHTML = 'Using WebXR polyfill. <a href="?usePolyfill=0">Toggle</a>';
 	} else {
@@ -297,7 +297,7 @@ Author(s): Philip Lamb
             onRequestSession: (() => onRequestSession('immersive-ar')),
             onEndSession: onEndSession,
             textEnterXRTitle: "START AR",
-            textXRNotFoundTitle: "XR NOT FOUND",
+            textXRNotFoundTitle: "XR NOT READY",
             textExitXRTitle: "EXIT  AR"
         });
         document.getElementById('button').appendChild(xrButton.domElement);
@@ -318,7 +318,7 @@ Author(s): Philip Lamb
                     onRequestSession: (() => onRequestSession('immersive-vr')),
                     onEndSession: onEndSession,
                     textEnterXRTitle: "START VR",
-                    textXRNotFoundTitle: "XR NOT FOUND",
+                    textXRNotFoundTitle: "XR NOT READY",
                     textExitXRTitle: "EXIT  VR"
                 });
                 document.getElementById('button').appendChild(xrButton.domElement);
@@ -369,7 +369,7 @@ Author(s): Philip Lamb
         for (const i of machines) {
             i.modelindex = arOsgMod.ccall('arOSGLoadModel', 'number', ['number', 'string'], [arOsg, i.modelpath]);
             if (i.modelindex < 0) {
-                console.error('Error loading model \'' + i.path + '\'.');
+                console.error('Error loading model \'' + i.modelpath + '\'.');
             } else {
                 console.log('Loaded model \'' + i.modelpath + '\' with index ' + i.modelindex + '.');
                 

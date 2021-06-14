@@ -426,7 +426,7 @@ Module['FS_createPath']("/", "shaders", true, true);
     }
   
    }
-   loadPackage({"files": [{"filename": "/models/hall_empty.dat", "start": 0, "end": 81, "audio": 0}, {"filename": "/models/.DS_Store", "start": 81, "end": 8277, "audio": 0}, {"filename": "/models/binmixer.dat", "start": 8277, "end": 8347, "audio": 0}, {"filename": "/models/chiller.dat", "start": 8347, "end": 8420, "audio": 0}, {"filename": "/models/hall_empty.glb", "start": 8420, "end": 141172, "audio": 0}, {"filename": "/models/turbogenerator-lp.glb", "start": 141172, "end": 16132288, "audio": 0}, {"filename": "/models/binmixer-lp.glb", "start": 16132288, "end": 18103852, "audio": 0}, {"filename": "/models/chiller-lp.glb", "start": 18103852, "end": 19057708, "audio": 0}, {"filename": "/models/turbogenerator.dat", "start": 19057708, "end": 19057786, "audio": 0}, {"filename": "/fonts/Vera.ttf", "start": 19057786, "end": 19123718, "audio": 0}, {"filename": "/shaders/osgText_Text.vert", "start": 19123718, "end": 19124070, "audio": 0}, {"filename": "/shaders/osgText_Text.frag", "start": 19124070, "end": 19131690, "audio": 0}], "remote_package_size": 19131690, "package_uuid": "92a59c0d-a8b4-436c-8c82-8ef8f2e2d15b"});
+   loadPackage({"files": [{"filename": "/models/hall_empty.dat", "start": 0, "end": 81, "audio": 0}, {"filename": "/models/.DS_Store", "start": 81, "end": 8277, "audio": 0}, {"filename": "/models/binmixer.dat", "start": 8277, "end": 8347, "audio": 0}, {"filename": "/models/chiller.dat", "start": 8347, "end": 8420, "audio": 0}, {"filename": "/models/hall_empty.glb", "start": 8420, "end": 141172, "audio": 0}, {"filename": "/models/turbogenerator-lp.glb", "start": 141172, "end": 16132288, "audio": 0}, {"filename": "/models/binmixer-lp.glb", "start": 16132288, "end": 18103852, "audio": 0}, {"filename": "/models/chiller-lp.glb", "start": 18103852, "end": 19057708, "audio": 0}, {"filename": "/models/turbogenerator.dat", "start": 19057708, "end": 19057786, "audio": 0}, {"filename": "/fonts/Vera.ttf", "start": 19057786, "end": 19123718, "audio": 0}, {"filename": "/shaders/osgText_Text.vert", "start": 19123718, "end": 19124070, "audio": 0}, {"filename": "/shaders/osgText_Text.frag", "start": 19124070, "end": 19131690, "audio": 0}], "remote_package_size": 19131690, "package_uuid": "7c1298e9-88af-458c-a0ca-24dfb0e46f21"});
   
   })();
   
@@ -2027,8 +2027,8 @@ var tempI64;
 // === Body ===
 
 var ASM_CONSTS = {
-  737080: function() {throw 'Canceled!'},  
- 737098: function($0, $1) {setTimeout(function() { __emscripten_do_dispatch_to_thread($0, $1); }, 0);}
+  740056: function() {throw 'Canceled!'},  
+ 740074: function($0, $1) {setTimeout(function() { __emscripten_do_dispatch_to_thread($0, $1); }, 0);}
 };
 function initPthreadsJS(){ PThread.initRuntime(); }
 
@@ -9962,6 +9962,9 @@ var _arOSGSetModelTransparency = Module["_arOSGSetModelTransparency"] = createEx
 var _arOSGSetModelSelectable = Module["_arOSGSetModelSelectable"] = createExportWrapper("arOSGSetModelSelectable");
 
 /** @type {function(...*):?} */
+var _arOSGCreateDEMModel = Module["_arOSGCreateDEMModel"] = createExportWrapper("arOSGCreateDEMModel");
+
+/** @type {function(...*):?} */
 var _arOSGUnloadModel = Module["_arOSGUnloadModel"] = createExportWrapper("arOSGUnloadModel");
 
 /** @type {function(...*):?} */
@@ -10182,8 +10185,8 @@ var dynCall_iiiiijj = Module["dynCall_iiiiijj"] = createExportWrapper("dynCall_i
 /** @type {function(...*):?} */
 var dynCall_iiiiiijj = Module["dynCall_iiiiiijj"] = createExportWrapper("dynCall_iiiiiijj");
 
-var __emscripten_allow_main_runtime_queued_calls = Module['__emscripten_allow_main_runtime_queued_calls'] = 736924;
-var __emscripten_main_thread_futex = Module['__emscripten_main_thread_futex'] = 754016;
+var __emscripten_allow_main_runtime_queued_calls = Module['__emscripten_allow_main_runtime_queued_calls'] = 739900;
+var __emscripten_main_thread_futex = Module['__emscripten_main_thread_futex'] = 756992;
 function invoke_ii(index,a1) {
   var sp = stackSave();
   try {
